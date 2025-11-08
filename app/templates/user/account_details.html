@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+
+{% block title %}Account Details - Banking System{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('user.dashboard') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<!-- Account Information -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">
+            <i class="bi bi-credit-card"></i> Account Details
+        </h4>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Account Number:</strong> {{ account.account_number }}</p>
+                <p><strong>Account Type:</strong> 
+                    <span class="badge bg-secondary">{{ account.account_type.title() }}</span>
+                </p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Current Balance:</strong> 
+                    <span class="fs-3 text-success">₹{{ "%.2f"|format(account.get_balance()) }}</span>
+                </p>
+                <p><strong>Status:</strong> 
+                    {% if account.is_frozen %}
+                        <span class="badge bg-danger">Frozen</span>
+                    {% else %}
+                        <span class="badge bg-success">Active</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        <hr>
+        <div class="btn-group" role="group">
+            <a href="{{ url_for('user.statement', account_id=account.id) }}" class="btn btn-primary">
+                <i class="bi bi-download"></i> Download Statement
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Transaction History -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-list-ul"></i> Transaction History</h5>
+    </div>
+    <div class="card-body">
+        {% if transactions %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Type</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Amount</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td>{{ transaction.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            <td>
+                                <span class="badge bg-info">{{ transaction.transaction_type.title() }}</span>
+                            </td>
+                            <td>
+                                {% if transaction.source_account %}
+                                    {{ transaction.source_account.account_number }}
+                                {% else %}
+                                    External
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if transaction.destination_account %}
+                                    {{ transaction.destination_account.account_number }}
+                                {% else %}
+                                    External
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if transaction.to_account_id == account.id and transaction.from_account_id != account.id %}
+                                    <span class="text-success fw-bold">+₹{{ "%.2f"|format(transaction.get_amount()) }}</span>
+                                {% elif transaction.from_account_id == account.id %}
+                                    <span class="text-danger fw-bold">-₹{{ "%.2f"|format(transaction.get_amount()) }}</span>
+                                {% else %}
+                                    ₹{{ "%.2f"|format(transaction.get_amount()) }}
+                                {% endif %}
+                            </td>
+                            <td>{{ transaction.description or 'N/A' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info mb-0">
+                <i class="bi bi-info-circle"></i> No transactions found for this account.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,149 @@
+{% extends "layout.html" %}
+
+{% block title %}Transactions - Admin{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">
+    <i class="bi bi-arrow-left-right"></i> Transaction Monitor
+</h2>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('admin.transactions') }}" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Transaction Type</label>
+                <select name="type" class="form-select">
+                    <option value="all" {% if transaction_type == 'all' %}selected{% endif %}>All Types</option>
+                    <option value="transfer" {% if transaction_type == 'transfer' %}selected{% endif %}>Transfers</option>
+                    <option value="deposit" {% if transaction_type == 'deposit' %}selected{% endif %}>Deposits</option>
+                    <option value="withdrawal" {% if transaction_type == 'withdrawal' %}selected{% endif %}>Withdrawals</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Time Period</label>
+                <select name="date" class="form-select">
+                    <option value="7" {% if date_filter == '7' %}selected{% endif %}>Last 7 days</option>
+                    <option value="30" {% if date_filter == '30' %}selected{% endif %}>Last 30 days</option>
+                    <option value="90" {% if date_filter == '90' %}selected{% endif %}>Last 90 days</option>
+                    <option value="all" {% if date_filter == 'all' %}selected{% endif %}>All time</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Search Account</label>
+                <input type="text" name="search" class="form-control" placeholder="Account number..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-filter"></i> Apply
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Summary -->
+<div class="card mb-4 bg-light">
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-4">
+                <h5>Total Transactions</h5>
+                <h3>{{ transactions|length }}</h3>
+            </div>
+            <div class="col-md-4">
+                <h5>Total Volume</h5>
+                <h3>₹{{ "%.2f"|format(total_volume) }}</h3>
+            </div>
+            <div class="col-md-4">
+                <h5>Filter Period</h5>
+                <h3>{{ date_filter if date_filter != 'all' else 'All' }} days</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transactions Table -->
+<div class="card">
+    <div class="card-body">
+        {% if transactions %}
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Date & Time</th>
+                            <th>Type</th>
+                            <th>From Account</th>
+                            <th>To Account</th>
+                            <th>Amount</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td>{{ transaction.id }}</td>
+                            <td>{{ transaction.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            <td>
+                                <span class="badge bg-info">{{ transaction.transaction_type }}</span>
+                            </td>
+                            <td>
+                                {% if transaction.source_account %}
+                                    <a href="{{ url_for('admin.user_details', user_id=transaction.source_account.user_id) }}">
+                                        {{ transaction.source_account.account_number }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">External</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if transaction.destination_account %}
+                                    <a href="{{ url_for('admin.user_details', user_id=transaction.destination_account.user_id) }}">
+                                        {{ transaction.destination_account.account_number }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">External</span>
+                                {% endif %}
+                            </td>
+                            <td><strong>₹{{ "%.2f"|format(transaction.get_amount()) }}</strong></td>
+                            <td>{{ transaction.description or 'N/A' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if pagination.pages > 1 %}
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if pagination.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin.transactions', page=pagination.prev_num, type=transaction_type, date=date_filter, search=search_query) }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for page_num in pagination.iter_pages() %}
+                        {% if page_num %}
+                            <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin.transactions', page=page_num, type=transaction_type, date=date_filter, search=search_query) }}">{{ page_num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if pagination.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin.transactions', page=pagination.next_num, type=transaction_type, date=date_filter, search=search_query) }}">Next</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        {% else %}
+            <div class="alert alert-info mb-0">
+                <i class="bi bi-info-circle"></i> No transactions found matching your criteria.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

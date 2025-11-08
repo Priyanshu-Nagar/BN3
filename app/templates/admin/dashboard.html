@@ -1,0 +1,198 @@
+{% extends "layout.html" %}
+
+{% block title %}Admin Dashboard - Banking System{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">
+    <i class="bi bi-shield-lock"></i> Admin Dashboard
+</h2>
+
+<!-- Summary Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h6 class="card-title">Total Users</h6>
+                <h2>{{ total_users }}</h2>
+                <small>{{ active_users }} active, {{ inactive_users }} inactive</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6 class="card-title">Total Accounts</h6>
+                <h2>{{ total_accounts }}</h2>
+                <small>{{ frozen_accounts }} frozen</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h6 class="card-title">Total Balance</h6>
+                <h2>₹{{ "%.2f"|format(total_balance) }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h6 class="card-title">Transactions</h6>
+                <h2>{{ total_transactions }}</h2>
+                <small>{{ transactions_today }} today</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Today's Activity -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-calendar-day"></i> Today's Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <h4>{{ transactions_today }}</h4>
+                        <p class="text-muted">Transactions</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h4>₹{{ "%.2f"|format(today_volume) }}</h4>
+                        <p class="text-muted">Transaction Volume</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h4>{{ recent_users|length }}</h4>
+                        <p class="text-muted">New Users (Last 5)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Quick Actions</h5>
+                <div class="btn-group" role="group">
+                    <a href="{{ url_for('admin.users') }}" class="btn btn-primary">
+                        <i class="bi bi-people"></i> Manage Users
+                    </a>
+                    <a href="{{ url_for('admin.transactions') }}" class="btn btn-info">
+                        <i class="bi bi-arrow-left-right"></i> View Transactions
+                    </a>
+                    <a href="{{ url_for('admin.statistics') }}" class="btn btn-success">
+                        <i class="bi bi-graph-up"></i> Statistics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Transactions</h5>
+    </div>
+    <div class="card-body">
+        {% if recent_transactions %}
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Type</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in recent_transactions %}
+                        <tr>
+                            <td>{{ transaction.timestamp.strftime('%H:%M:%S') }}</td>
+                            <td><span class="badge bg-info">{{ transaction.transaction_type }}</span></td>
+                            <td>
+                                {% if transaction.source_account %}
+                                    {{ transaction.source_account.account_number }}
+                                {% else %}
+                                    External
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if transaction.destination_account %}
+                                    {{ transaction.destination_account.account_number }}
+                                {% else %}
+                                    External
+                                {% endif %}
+                            </td>
+                            <td>₹{{ "%.2f"|format(transaction.get_amount()) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-center">
+                <a href="{{ url_for('admin.transactions') }}" class="btn btn-sm btn-outline-primary">
+                    View All Transactions
+                </a>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No recent transactions.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recently Registered Users -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-person-plus"></i> Recently Registered Users</h5>
+    </div>
+    <div class="card-body">
+        {% if recent_users %}
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Name</th>
+                            <th>Registered</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in recent_users %}
+                        <tr>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.full_name }}</td>
+                            <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                {% if user.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('admin.user_details', user_id=user.id) }}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No users registered yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

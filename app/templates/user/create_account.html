@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+
+{% block title %}Create Account - Banking System{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('user.dashboard') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-credit-card-2-front"></i> Create New Account
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('user.create_account') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Account Type -->
+                    <div class="mb-3">
+                        {{ form.account_type.label(class="form-label") }}
+                        {{ form.account_type(class="form-select" + (" is-invalid" if form.account_type.errors else "")) }}
+                        {% if form.account_type.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.account_type.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">Choose between checking or savings account</small>
+                    </div>
+
+                    <!-- Initial Deposit -->
+                    <div class="mb-3">
+                        {{ form.initial_deposit.label(class="form-label") }}
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            {{ form.initial_deposit(class="form-control" + (" is-invalid" if form.initial_deposit.errors else ""), step="0.01") }}
+                            {% if form.initial_deposit.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.initial_deposit.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <small class="form-text text-muted">Minimum deposit: ₹10.00</small>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-success btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

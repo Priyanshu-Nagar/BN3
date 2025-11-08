@@ -1,0 +1,161 @@
+{% extends "layout.html" %}
+
+{% block title %}User Details - Admin{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('admin.users') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Users
+    </a>
+</div>
+
+<!-- User Information -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0"><i class="bi bi-person"></i> User Information</h4>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Email:</strong> {{ user.email }}</p>
+                <p><strong>Name:</strong> {{ user.full_name or 'N/A' }}</p>
+                <p><strong>Phone:</strong> {{ user.phone or 'N/A' }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Registered:</strong> {{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                <p><strong>Total Balance:</strong> <span class="fs-4 text-success">₹{{ "%.2f"|format(total_balance) }}</span></p>
+                <p><strong>Status:</strong> 
+                    {% if user.is_active %}
+                        <span class="badge bg-success">Active</span>
+                    {% else %}
+                        <span class="badge bg-danger">Inactive</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        <hr>
+        <!-- Toggle Status Form -->
+        <form method="POST" action="{{ url_for('admin.toggle_user_status', user_id=user.id) }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+            {% if user.is_active %}
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to deactivate this user?')">
+                    <i class="bi bi-lock"></i> Deactivate User
+                </button>
+            {% else %}
+                <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to activate this user?')">
+                    <i class="bi bi-unlock"></i> Activate User
+                </button>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- User Accounts -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-credit-card"></i> Accounts</h5>
+    </div>
+    <div class="card-body">
+        {% if accounts %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Account Number</th>
+                            <th>Type</th>
+                            <th>Balance</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for account in accounts %}
+                        <tr>
+                            <td><strong>{{ account.account_number }}</strong></td>
+                            <td><span class="badge bg-secondary">{{ account.account_type.title() }}</span></td>
+                            <td>₹{{ "%.2f"|format(account.get_balance()) }}</td>
+                            <td>
+                                {% if account.is_frozen %}
+                                    <span class="badge bg-danger">Frozen</span>
+                                {% else %}
+                                    <span class="badge bg-success">Active</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ account.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <form method="POST" action="{{ url_for('admin.toggle_account_freeze', account_id=account.id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+                                    {% if account.is_frozen %}
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="bi bi-unlock"></i> Unfreeze
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Freeze this account?')">
+                                            <i class="bi bi-lock"></i> Freeze
+                                        </button>
+                                    {% endif %}
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No accounts found.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Transactions</h5>
+    </div>
+    <div class="card-body">
+        {% if recent_transactions %}
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Amount</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in recent_transactions %}
+                        <tr>
+                            <td>{{ transaction.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td><span class="badge bg-info">{{ transaction.transaction_type }}</span></td>
+                            <td>
+                                {% if transaction.source_account %}
+                                    {{ transaction.source_account.account_number }}
+                                {% else %}
+                                    External
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if transaction.destination_account %}
+                                    {{ transaction.destination_account.account_number }}
+                                {% else %}
+                                    External
+                                {% endif %}
+                            </td>
+                            <td>₹{{ "%.2f"|format(transaction.get_amount()) }}</td>
+                            <td>{{ transaction.description or 'N/A' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No transactions found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

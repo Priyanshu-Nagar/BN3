@@ -1,0 +1,159 @@
+{% extends "layout.html" %}
+
+{% block title %}Statistics - Admin{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">
+    <i class="bi bi-graph-up"></i> System Statistics
+</h2>
+
+<!-- Account Type Distribution -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Account Type Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h3>{{ checking_count }}</h3>
+                        <p class="text-muted">Checking Accounts</p>
+                    </div>
+                    <div class="col-6">
+                        <h3>{{ savings_count }}</h3>
+                        <p class="text-muted">Savings Accounts</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Average Account Balance</h5>
+            </div>
+            <div class="card-body text-center">
+                <h2 class="display-4 text-success">₹{{ "%.2f"|format(avg_balance) }}</h2>
+                <p class="text-muted">Per account</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transaction Type Distribution (Last 30 Days) -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Transaction Types (Last 30 Days)</h5>
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h3>{{ transfer_count }}</h3>
+                        <p>Transfers</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h3>{{ deposit_count }}</h3>
+                        <p>Deposits</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <h3>{{ withdrawal_count }}</h3>
+                        <p>Withdrawals</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Accounts by Balance -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Top 5 Accounts by Balance</h5>
+    </div>
+    <div class="card-body">
+        {% if top_accounts %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Account Number</th>
+                            <th>Owner</th>
+                            <th>Type</th>
+                            <th>Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for account in top_accounts %}
+                        <tr>
+                            <td><strong>#{{ loop.index }}</strong></td>
+                            <td>{{ account.account_number }}</td>
+                            <td>
+                                <a href="{{ url_for('admin.user_details', user_id=account.user_id) }}">
+                                    {{ account.owner.email }}
+                                </a>
+                            </td>
+                            <td><span class="badge bg-secondary">{{ account.account_type.title() }}</span></td>
+                            <td><strong>₹{{ "%.2f"|format(account.get_balance()) }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No accounts found.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Most Active Users -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Most Active Users by Transaction Count</h5>
+    </div>
+    <div class="card-body">
+        {% if active_users %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Email</th>
+                            <th>Name</th>
+                            <th>Transaction Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user_info in active_users %}
+                        <tr>
+                            <td><strong>#{{ loop.index }}</strong></td>
+                            <td>
+                                <a href="{{ url_for('admin.user_details', user_id=user_info.id) }}">
+                                    {{ user_info.email }}
+                                </a>
+                            </td>
+                            <td>{{ user_info.full_name }}</td>
+                            <td><span class="badge bg-primary">{{ user_info.transaction_count }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No transaction data available.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

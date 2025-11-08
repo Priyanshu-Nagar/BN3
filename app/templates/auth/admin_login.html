@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+
+{% block title %}Admin Login - Banking System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow border-danger">
+            <div class="card-body p-5">
+                <h2 class="text-center mb-4">
+                    <i class="bi bi-shield-lock text-danger"></i> Admin Login
+                </h2>
+                
+                <div class="alert alert-warning" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i> 
+                    <strong>Admin Access Only</strong><br>
+                    Default: username = <code>admin</code>, password = <code>admin123</code>
+                </div>
+                
+                <form method="POST" action="{{ url_for('auth.admin_login') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Username Field -->
+                    <div class="mb-3">
+                        {{ form.username.label(class="form-label") }}
+                        {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""), placeholder="Enter admin username") }}
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.username.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Enter admin password") }}
+                        {% if form.password.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.password.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Remember Me -->
+                    <div class="mb-3 form-check">
+                        {{ form.remember(class="form-check-input") }}
+                        {{ form.remember.label(class="form-check-label") }}
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-danger btn-lg") }}
+                    </div>
+                </form>
+
+                <hr class="my-4">
+                
+                <div class="text-center">
+                    <p class="mb-0">
+                        <a href="{{ url_for('auth.login') }}">Back to User Login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

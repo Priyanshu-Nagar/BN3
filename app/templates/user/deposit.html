@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+
+{% block title %}Deposit Money - Banking System{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('user.dashboard') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-plus-circle"></i> Deposit Money
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> This is a simulation. In a real system, deposits would be linked to external payment gateways.
+                </div>
+                
+                <form method="POST" action="{{ url_for('user.deposit') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Account Selection -->
+                    <div class="mb-3">
+                        {{ form.account.label(class="form-label") }}
+                        {{ form.account(class="form-select" + (" is-invalid" if form.account.errors else "")) }}
+                        {% if form.account.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.account.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Amount -->
+                    <div class="mb-3">
+                        {{ form.amount.label(class="form-label") }}
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else ""), placeholder="0.00", step="0.01") }}
+                            {% if form.amount.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.amount.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control", placeholder="Optional", rows=2) }}
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-success btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+
+{% block title %}Transfer Money - Banking System{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('user.dashboard') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-send"></i> Transfer Money
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('user.transfer') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- From Account -->
+                    <div class="mb-3">
+                        {{ form.from_account.label(class="form-label") }}
+                        {{ form.from_account(class="form-select" + (" is-invalid" if form.from_account.errors else "")) }}
+                        {% if form.from_account.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.from_account.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- To Account Number -->
+                    <div class="mb-3">
+                        {{ form.to_account_id.label(class="form-label") }}
+                        {{ form.to_account_id(class="form-control" + (" is-invalid" if form.to_account_id.errors else ""), placeholder="Enter 10-digit account number") }}
+                        {% if form.to_account_id.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.to_account_id.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">Enter the recipient's account number</small>
+                    </div>
+
+                    <!-- Amount -->
+                    <div class="mb-3">
+                        {{ form.amount.label(class="form-label") }}
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else ""), placeholder="0.00", step="0.01") }}
+                            {% if form.amount.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.amount.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control", placeholder="Optional - e.g., Rent payment, Gift, etc.", rows=3) }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.description.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

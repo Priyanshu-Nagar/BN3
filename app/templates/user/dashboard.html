@@ -1,0 +1,168 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - Banking System{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">
+    <i class="bi bi-speedometer2"></i> Dashboard
+</h2>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-wallet2"></i> Total Balance
+                </h5>
+                <h2>₹{{ "%.2f"|format(total_balance) }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-credit-card"></i> Active Accounts
+                </h5>
+                <h2>{{ accounts|length }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-arrow-left-right"></i> Recent Transactions
+                </h5>
+                <h2>{{ recent_transactions|length }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Quick Actions</h5>
+                <div class="btn-group" role="group">
+                    <a href="{{ url_for('user.transfer') }}" class="btn btn-primary">
+                        <i class="bi bi-send"></i> Transfer Money
+                    </a>
+                    <a href="{{ url_for('user.deposit') }}" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Deposit
+                    </a>
+                    <a href="{{ url_for('user.withdraw') }}" class="btn btn-warning">
+                        <i class="bi bi-dash-circle"></i> Withdraw
+                    </a>
+                    <a href="{{ url_for('user.create_account') }}" class="btn btn-info">
+                        <i class="bi bi-credit-card-2-front"></i> New Account
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Accounts List -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-credit-card"></i> My Accounts</h5>
+    </div>
+    <div class="card-body">
+        {% if accounts %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Account Number</th>
+                            <th>Type</th>
+                            <th>Balance</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for account in accounts %}
+                        <tr>
+                            <td><strong>{{ account.account_number }}</strong></td>
+                            <td>
+                                <span class="badge bg-secondary">{{ account.account_type.title() }}</span>
+                            </td>
+                            <td><strong>₹{{ "%.2f"|format(account.get_balance()) }}</strong></td>
+                            <td>
+                                {% if account.is_frozen %}
+                                    <span class="badge bg-danger">Frozen</span>
+                                {% else %}
+                                    <span class="badge bg-success">Active</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('user.account_details', account_id=account.id) }}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                                <a href="{{ url_for('user.statement', account_id=account.id) }}" class="btn btn-sm btn-secondary">
+                                    <i class="bi bi-download"></i> Statement
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> You don't have any accounts yet. 
+                <a href="{{ url_for('user.create_account') }}" class="alert-link">Create one now</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Transactions</h5>
+    </div>
+    <div class="card-body">
+        {% if recent_transactions %}
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in recent_transactions %}
+                        <tr>
+                            <td>{{ transaction.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <span class="badge bg-info">{{ transaction.transaction_type.title() }}</span>
+                            </td>
+                            <td>
+                                {% if transaction.to_account_id in accounts|map(attribute='id')|list and transaction.from_account_id not in accounts|map(attribute='id')|list %}
+                                    <span class="text-success">+₹{{ "%.2f"|format(transaction.get_amount()) }}</span>
+                                {% elif transaction.from_account_id in accounts|map(attribute='id')|list %}
+                                    <span class="text-danger">-₹{{ "%.2f"|format(transaction.get_amount()) }}</span>
+                                {% else %}
+                                    ₹{{ "%.2f"|format(transaction.get_amount()) }}
+                                {% endif %}
+                            </td>
+                            <td>{{ transaction.description or 'N/A' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No transactions yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
