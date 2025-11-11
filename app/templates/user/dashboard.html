@@ -145,11 +145,31 @@
                             <td>
                                 <span class="badge bg-info">{{ transaction.transaction_type.title() }}</span>
                             </td>
-                            <td>
+                            <!-- <td>
                                 {% if transaction.to_account_id in accounts|map(attribute='id')|list and transaction.from_account_id not in accounts|map(attribute='id')|list %}
                                     <span class="text-success">+₹{{ "%.2f"|format(transaction.get_amount()) }}</span>
                                 {% elif transaction.from_account_id in accounts|map(attribute='id')|list %}
                                     <span class="text-danger">-₹{{ "%.2f"|format(transaction.get_amount()) }}</span>
+                                {% else %}
+                                    ₹{{ "%.2f"|format(transaction.get_amount()) }}
+                                {% endif %}
+                            </td> -->
+                            <td>
+                                {% set my_account_ids = accounts|map(attribute='id')|list %}
+                                
+                                {# Money coming IN (received) #}
+                                {% if transaction.to_account_id in my_account_ids and (transaction.from_account_id is none or transaction.from_account_id not in my_account_ids) %}
+                                    <span class="text-success">+₹{{ "%.2f"|format(transaction.get_amount()) }}</span>
+                                
+                                {# Money going OUT (sent) #}
+                                {% elif transaction.from_account_id in my_account_ids and (transaction.to_account_id is none or transaction.to_account_id not in my_account_ids) %}
+                                    <span class="text-danger">-₹{{ "%.2f"|format(transaction.get_amount()) }}</span>
+                                
+                                {# Transfer between MY OWN accounts - show only ONCE #}
+                                {% elif transaction.from_account_id in my_account_ids and transaction.to_account_id in my_account_ids %}
+                                    <span class="text-primary">⟷ ₹{{ "%.2f"|format(transaction.get_amount()) }}</span>
+                                
+                                {# Fallback #}
                                 {% else %}
                                     ₹{{ "%.2f"|format(transaction.get_amount()) }}
                                 {% endif %}
