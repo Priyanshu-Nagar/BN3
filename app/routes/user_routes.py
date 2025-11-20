@@ -7,7 +7,7 @@ from flask_login import login_required, current_user
 from app import db
 from app.models import User, Admin, Account, Transaction
 from app.forms import TransferForm, CreateAccountForm, ChangePasswordForm, DepositForm, WithdrawForm
-from datetime import datetime
+from datetime import datetime, timedelta
 import csv
 from io import StringIO
 
@@ -48,10 +48,14 @@ def dashboard():
     accounts = current_user.accounts.all()
     
     # Get recent transactions across all accounts (last 10)
-    recent_transactions = []
+    transactions_map = {}
     for account in accounts:
         transactions = account.get_all_transactions()
-        recent_transactions.extend(transactions)
+        for tx in transactions:
+            transactions_map[tx.id] = tx
+            
+    # Convert back to a list
+    recent_transactions = list(transactions_map.values())
     
     # Sort by timestamp and limit to 10
     recent_transactions = sorted(recent_transactions, key=lambda x: x.timestamp, reverse=True)[:10]
@@ -120,7 +124,7 @@ def transfer():
         flash('You need at least one active account to make transfers.', 'warning')
         return redirect(url_for('user.dashboard'))
     
-    form.from_account.choices = [(acc.id, f'{acc.account_number} - {acc.account_type.title()} (${acc.get_balance():.2f})') 
+    form.from_account.choices = [(acc.id, f'{acc.account_number} - {acc.account_type.title()} (₹{acc.get_balance():.2f})') 
                                    for acc in user_accounts]
     
     if form.validate_on_submit():
@@ -160,7 +164,7 @@ def transfer():
             
             # Check sufficient balance
             if from_account.balance < amount_cents:
-                flash(f'Insufficient balance. Available: ${from_account.get_balance():.2f}', 'danger')
+                flash(f'Insufficient balance. Available: ₹{from_account.get_balance():.2f}', 'danger')
                 return redirect(url_for('user.transfer'))
             
             # Perform atomic transaction
@@ -178,13 +182,13 @@ def transfer():
                     amount=amount_cents,
                     transaction_type='transfer',
                     description=form.description.data or f'Transfer to {to_account.account_number}',
-                    timestamp=datetime.utcnow()
+                    timestamp=datetime.utcnow() + timedelta(hours=5, minutes=30)
                 )
                 
                 db.session.add(transaction)
                 db.session.commit()
                 
-                flash(f'Successfully transferred ${form.amount.data:.2f} to account {to_account.account_number}!', 'success')
+                flash(f'Successfully transferred ₹{form.amount.data:.2f} to account {to_account.account_number}!', 'success')
                 return redirect(url_for('user.dashboard'))
                 
             except Exception as e:
@@ -226,6 +230,7 @@ def statement(account_id):
     
     # Create CSV in memory
     output = StringIO()
+    output.write('\ufeff')
     writer = csv.writer(output)
     
     # Write header
@@ -247,12 +252,12 @@ def statement(account_id):
         # Determine if money came in or went out
         if transaction.to_account_id == account.id:
             # Money received
-            amount_str = f'+${transaction.get_amount():.2f}'
+            amount_str = f'+₹{transaction.get_amount():.2f}'
             from_acc = transaction.source_account.account_number if transaction.source_account else 'External'
             to_acc = account.account_number
         elif transaction.from_account_id == account.id:
             # Money sent
-            amount_str = f'-${transaction.get_amount():.2f}'
+            amount_str = f'-₹{transaction.get_amount():.2f}'
             from_acc = account.account_number
             to_acc = transaction.destination_account.account_number if transaction.destination_account else 'External'
         else:
@@ -264,7 +269,7 @@ def statement(account_id):
             from_acc,
             to_acc,
             amount_str,
-            f'${running_balance / 100:.2f}',
+            f'₹{running_balance / 100:.2f}',
             transaction.description or 'N/A'
         ])
     
@@ -370,13 +375,13 @@ def deposit():
                 amount=amount_cents,
                 transaction_type='deposit',
                 description=form.description.data or 'Cash deposit',
-                timestamp=datetime.utcnow()
+                timestamp=datetime.utcnow() + timedelta(hours=5, minutes=30)
             )
             
             db.session.add(transaction)
             db.session.commit()
             
-            flash(f'Successfully deposited ${form.amount.data:.2f} into account {account.account_number}!', 'success')
+            flash(f'Successfully deposited ₹{form.amount.data:.2f} into account {account.account_number}!', 'success')
             return redirect(url_for('user.dashboard'))
             
         except Exception as e:
@@ -412,7 +417,7 @@ def withdraw():
         flash('You need at least one active account to make withdrawals.', 'warning')
         return redirect(url_for('user.dashboard'))
     
-    form.account.choices = [(acc.id, f'{acc.account_number} - {acc.account_type.title()} (${acc.get_balance():.2f})') 
+    form.account.choices = [(acc.id, f'{acc.account_number} - {acc.account_type.title()} (₹{acc.get_balance():.2f})') 
                             for acc in user_accounts]
     
     if form.validate_on_submit():
@@ -429,7 +434,7 @@ def withdraw():
             
             # Check sufficient balance
             if account.balance < amount_cents:
-                flash(f'Insufficient balance. Available: ${account.get_balance():.2f}', 'danger')
+                flash(f'Insufficient balance. Available: ₹{account.get_balance():.2f}', 'danger')
                 return redirect(url_for('user.withdraw'))
             
             # Perform withdrawal
@@ -441,13 +446,13 @@ def withdraw():
                 amount=amount_cents,
                 transaction_type='withdrawal',
                 description=form.description.data or 'Cash withdrawal',
-                timestamp=datetime.utcnow()
+                timestamp=datetime.utcnow() + timedelta(hours=5, minutes=30)
             )
             
             db.session.add(transaction)
             db.session.commit()
             
-            flash(f'Successfully withdrew ${form.amount.data:.2f} from account {account.account_number}!', 'success')
+            flash(f'Successfully withdrew ₹{form.amount.data:.2f} from account {account.account_number}!', 'success')
             return redirect(url_for('user.dashboard'))
             
         except Exception as e:

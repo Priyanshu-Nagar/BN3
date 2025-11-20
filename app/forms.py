@@ -70,9 +70,9 @@ class TransferForm(FlaskForm):
         Length(min=10, max=10, message='Account number must be exactly 10 digits')
     ])
     
-    amount = DecimalField('Amount ($)', validators=[
+    amount = DecimalField('Amount (₹)', validators=[
         DataRequired(message='Amount is required'),
-        NumberRange(min=0.01, max=1000000, message='Amount must be between $0.01 and $1,000,000')
+        NumberRange(min=0.01, max=1000000, message='Amount must be between ₹0.01 and ₹1,000,000')
     ], places=2)
     
     description = TextAreaField('Description (Optional)', validators=[
@@ -120,13 +120,13 @@ class CreateAccountForm(FlaskForm):
     Create new bank account form
     """
     account_type = SelectField('Account Type', choices=[
-        ('checking', 'Checking Account'),
+        ('current', 'Current Account'),
         ('savings', 'Savings Account')
     ], validators=[DataRequired(message='Please select account type')])
     
-    initial_deposit = DecimalField('Initial Deposit ($)', validators=[
+    initial_deposit = DecimalField('Initial Deposit (₹)', validators=[
         DataRequired(message='Initial deposit is required'),
-        NumberRange(min=10.00, max=100000.00, message='Initial deposit must be between $10.00 and $100,000')
+        NumberRange(min=10.00, max=100000.00, message='Initial deposit must be between ₹10.00 and ₹100,000')
     ], places=2, default=10.00)
     
     submit = SubmitField('Create Account')
@@ -161,9 +161,9 @@ class DepositForm(FlaskForm):
         DataRequired(message='Please select account')
     ])
     
-    amount = DecimalField('Deposit Amount ($)', validators=[
+    amount = DecimalField('Deposit Amount (₹)', validators=[
         DataRequired(message='Amount is required'),
-        NumberRange(min=0.01, max=100000.00, message='Amount must be between $0.01 and $100,000')
+        NumberRange(min=0.01, max=100000.00, message='Amount must be between ₹0.01 and ₹100,000')
     ], places=2)
     
     description = TextAreaField('Description (Optional)', validators=[
@@ -182,9 +182,9 @@ class WithdrawForm(FlaskForm):
         DataRequired(message='Please select account')
     ])
     
-    amount = DecimalField('Withdrawal Amount ($)', validators=[
+    amount = DecimalField('Withdrawal Amount (₹)', validators=[
         DataRequired(message='Amount is required'),
-        NumberRange(min=0.01, max=100000.00, message='Amount must be between $0.01 and $100,000')
+        NumberRange(min=0.01, max=100000.00, message='Amount must be between ₹0.01 and ₹100,000')
     ], places=2)
     
     description = TextAreaField('Description (Optional)', validators=[

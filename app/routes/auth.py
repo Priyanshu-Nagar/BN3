@@ -41,12 +41,12 @@ def register():
             db.session.add(user)
             db.session.flush()  # Get user.id without committing
             
-            # Create default checking account with $100 initial balance
+            # Create default checking account with ₹100 initial balance
             account = Account(
                 user_id=user.id,
                 account_number=generate_account_number(),
-                account_type='checking',
-                balance=10000  # $100.00 in cents
+                account_type='current',
+                balance=10000  # ₹100.00 in cents
             )
             db.session.add(account)
             db.session.commit()

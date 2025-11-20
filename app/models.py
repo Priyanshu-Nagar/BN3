@@ -5,7 +5,12 @@ Defines all database tables and relationships using SQLAlchemy
 from app import db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+# from datetime import datetime
+from datetime import datetime, timedelta
+
+
+def get_ist_now():
+    return datetime.utcnow() + timedelta(hours=5, minutes=30)
 
 
 class User(UserMixin, db.Model):
@@ -21,7 +26,7 @@ class User(UserMixin, db.Model):
     phone = db.Column(db.String(20), nullable=True)
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=get_ist_now, nullable=False)
     
     # Relationships
     accounts = db.relationship('Account', backref='owner', lazy='dynamic', cascade='all, delete-orphan')
@@ -81,7 +86,7 @@ class Admin(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False, index=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=get_ist_now, nullable=False)
     
     def get_id(self):
         """
@@ -130,7 +135,7 @@ class Account(db.Model):
     account_type = db.Column(db.String(20), nullable=False)  # 'checking' or 'savings'
     balance = db.Column(db.Integer, default=0, nullable=False)  # Stored in cents
     is_frozen = db.Column(db.Boolean, default=False, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=get_ist_now, nullable=False)
     
     # Relationships
     transactions_sent = db.relationship(
@@ -207,7 +212,7 @@ class Transaction(db.Model):
     amount = db.Column(db.Integer, nullable=False)  # Stored in cents
     transaction_type = db.Column(db.String(20), nullable=False)  # 'transfer', 'deposit', 'withdrawal'
     description = db.Column(db.String(255), nullable=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    timestamp = db.Column(db.DateTime, default=get_ist_now, nullable=False, index=True)
     
     def get_amount(self):
         """
@@ -219,7 +224,7 @@ class Transaction(db.Model):
         return self.amount / 100.0
     
     def __repr__(self):
-        return f'<Transaction {self.id} - {self.transaction_type} ${self.get_amount():.2f}>'
+        return f'<Transaction {self.id} - {self.transaction_type} ₹{self.get_amount():.2f}>'
 
 
 # Helper function to generate unique account numbers

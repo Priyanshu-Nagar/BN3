@@ -71,7 +71,8 @@ def dashboard():
     total_transactions = Transaction.query.count()
     
     # Transactions today
-    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
     transactions_today = Transaction.query.filter(Transaction.timestamp >= today_start).count()
     
     # Total transaction volume today (in cents)
@@ -274,7 +275,7 @@ def transactions():
     # Apply date filter
     if date_filter != 'all':
         days_back = int(date_filter)
-        cutoff_date = datetime.utcnow() - timedelta(days=days_back)
+        cutoff_date = (datetime.utcnow() + timedelta(hours=5, minutes=30)) - timedelta(days=days_back)
         query = query.filter(Transaction.timestamp >= cutoff_date)
     
     # Apply search filter (search by account number)
@@ -306,7 +307,7 @@ def transactions():
     # Calculate total volume for filtered transactions
     if date_filter != 'all':
         days_back = int(date_filter)
-        cutoff_date = datetime.utcnow() - timedelta(days=days_back)
+        cutoff_date = (datetime.utcnow() + timedelta(hours=5, minutes=30)) - timedelta(days=days_back)
         volume_query = db.session.query(func.sum(Transaction.amount)).filter(
             Transaction.timestamp >= cutoff_date
         )
@@ -343,7 +344,7 @@ def statistics():
     savings_count = Account.query.filter_by(account_type='savings').count()
     
     # Transaction type distribution (last 30 days)
-    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    thirty_days_ago = (datetime.utcnow() + timedelta(hours=5, minutes=30)) - timedelta(days=30)
     
     transfer_count = Transaction.query.filter(
         Transaction.transaction_type == 'transfer',
@@ -385,7 +386,7 @@ def statistics():
     return render_template(
         'admin/statistics.html',
         title='System Statistics',
-        checking_count=checking_count,
+        current_count=current_count,
         savings_count=savings_count,
         transfer_count=transfer_count,
         deposit_count=deposit_count,
